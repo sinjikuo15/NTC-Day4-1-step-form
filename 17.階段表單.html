@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>17</title>
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <script src="https://unpkg.com/vue@3"></script>
+
+    <div id="app">
+        <keep-alive>
+            <component :is="currentForm" @set-form="updateForm" @update="updateInfo" :form-data="form"></component>
+        </keep-alive>
+    </div>
+
+    </script>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    currentForm: 'personal-component',
+                    form: {},
+                }
+            },
+            methods: {
+                updateForm(formName) {
+                    this.currentForm = formName;
+                },
+                updateInfo(inputData) {
+                    this.form[inputData.columnName] = inputData.columnValue;
+                    console.log(this.form)
+                }
+            }
+        });
+        app.component('personal-component', {
+            template: `
+            <label>姓名</label> 
+            <input type="text" v-model="name"> <br>
+            <label>電話</label> 
+            <input type="text" v-model="phone"> <br>
+            <button  @click="nextStep">下一步</button>`,
+            data() {
+                return {
+                    name: '',
+                    phone: '',
+                }
+            },
+            methods: {
+                nextStep() {
+                    this.$emit('set-form', 'address-component')
+                },
+
+            },
+            watch: {
+                name: {
+                    handler(value) {
+                        this.$emit('update', { columnName: 'name', columnValue: value })
+                    }
+                },
+                phone: {
+                    handler(value) {
+                        this.$emit('update', { columnName: 'phone', columnValue: value })
+                    }
+                },                
+            }
+        });
+        app.component('address-component', {
+            template: `
+            <label>地址</label>  
+            <input type="text" v-model="address"> <br>
+            <button @click="lastStep">上一步</button>
+            <button @click="nextStep">下一步</button>
+           `,
+            data() {
+                return {
+                    address: ''
+                }
+            },
+            methods: {
+                lastStep() {
+                    this.$emit('set-form', 'personal-component')
+                },
+                nextStep() {
+                    this.$emit('set-form', 'final-component')
+                }
+            },
+            watch: {
+                address: {
+                    handler(value) {
+                        this.$emit('update', { columnName: 'address', columnValue: value })
+                    }
+                },
+
+            }
+        });
+        app.component('final-component', {
+            template: `
+            <h3>請確認資料:</h3>
+            <div>姓名:{{ formData['name' ]}}</div>
+            <div>電話:{{ formData['phone' ]}}</div>
+            <div>地址:{{ formData['address'] }}</div>
+            <button @click="lastStep">上一步</button>`,
+            data() {
+                return {
+                    result: '結果',
+                    address: this.address
+                }
+            },
+            props: ['formData'],
+            methods: {
+                lastStep() {
+                    this.$emit('set-form', 'address-component')
+                },
+            }
+        });
+        app.mount('#app')
+
+
+
+    </script>
+</body>
+
+</html>
